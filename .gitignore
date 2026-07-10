@@ -1,0 +1,28 @@
+# dependencies
+**/node_modules/
+
+# builds
+**/.next/
+**/dist/
+**/build/
+
+# secrets — NEVER commit these
+**/.env
+**/.env.local
+**/.env.*.local
+.env
+.env.local
+
+# logs & misc
+*.log
+npm-debug.log*
+**/build.log
+**/prisma-generate.log
+.DS_Store
+*.tsbuildinfo
+
+# local uploads
+server/uploads/
+
+# keep .env.example (templates are safe to commit)
+!**/.env.example

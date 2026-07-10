@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --font-cairo: "Cairo", "Tajawal", sans-serif; }
+
+* { -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body { background: #F8F8F8; color: #1E1E1E; }
+
+::selection { background: #C8102E; color: #fff; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d8dade; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #c2c5ca; }
+
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold transition-all duration-200 disabled:opacity-50; }
+  .btn-primary { @apply btn bg-primary text-white hover:bg-primary-dark hover:shadow-hover active:scale-[.98]; }
+  .btn-outline { @apply btn border border-line bg-white text-ink hover:border-primary hover:text-primary; }
+  .btn-ghost { @apply btn text-ink hover:bg-black/5; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold; }
+  .card { @apply rounded-2xl border border-line bg-white shadow-card; }
+  .section-title { @apply text-2xl font-extrabold text-ink sm:text-[28px]; }
+  .skeleton { @apply relative overflow-hidden bg-line/60; }
+  .skeleton::after { content: ""; @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/60 to-transparent; }
+}
+
+/* hide number input arrows */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

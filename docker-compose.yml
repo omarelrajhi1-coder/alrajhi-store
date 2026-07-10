@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: alrajhi
+      POSTGRES_PASSWORD: alrajhi
+      POSTGRES_DB: alrajhi
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alrajhi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./server
+    environment:
+      DATABASE_URL: postgresql://alrajhi:alrajhi@db:5432/alrajhi?schema=public
+      JWT_SECRET: change-this-access-secret-in-production-please
+      JWT_REFRESH_SECRET: change-this-refresh-secret-in-production-please
+      ACCESS_TOKEN_TTL: 15m
+      REFRESH_TOKEN_TTL: 7d
+      CLIENT_ORIGIN: http://localhost:3000
+      UPLOAD_DIR: uploads
+      NODE_ENV: production
+      PORT: 4000
+    ports: ["4000:4000"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  web:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes:
+  pgdata:
