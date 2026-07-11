@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, OrderStatus } from "@prisma/client";
 import { prisma } from "../../prisma";
 import { AppError } from "../../utils/AppError";
 
@@ -70,7 +70,7 @@ export const ordersService = {
 
   async listAdmin(opts: { skip: number; limit: number; status?: string; q?: string }) {
     const where: Prisma.OrderWhereInput = {};
-    if (opts.status && opts.status !== "ALL") where.status = opts.status as Prisma.OrderStatus;
+    if (opts.status && opts.status !== "ALL") where.status = opts.status as OrderStatus;
     if (opts.q) where.OR = [{ number: { contains: opts.q, mode: "insensitive" } }, { customer: { contains: opts.q, mode: "insensitive" } }, { phone: { contains: opts.q } }];
     const [items, total] = await Promise.all([
       prisma.order.findMany({ where, orderBy: { createdAt: "desc" }, skip: opts.skip, take: opts.limit, include: { items: true } }),
