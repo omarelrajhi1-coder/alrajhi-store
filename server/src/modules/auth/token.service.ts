@@ -15,7 +15,8 @@ export function verifyAccessToken(token: string): AccessPayload {
 }
 
 function baseCookie() {
-  return { httpOnly: true, secure: env.isProd, sameSite: "lax" as const, path: "/" };
+  // Cross-site (Vercel frontend <-> Render backend) requires SameSite=None + Secure in production.
+  return { httpOnly: true, secure: env.isProd, sameSite: (env.isProd ? "none" : "lax") as "none" | "lax", path: "/" };
 }
 
 export function setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
