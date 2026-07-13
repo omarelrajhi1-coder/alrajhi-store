@@ -1,5 +1,10 @@
 /** Browser/server fetch wrapper for the ALRAJHI API. Unwraps the standard envelope. */
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+// In the browser we call the SAME origin ("/api") which Next.js proxies to the backend —
+// this keeps auth cookies first-party so login works on mobile Safari (blocks 3rd-party cookies).
+// Server-side rendering uses the absolute backend URL directly.
+const BASE = typeof window === "undefined"
+  ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api")
+  : "/api";
 
 export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string, public details?: unknown) {
@@ -26,7 +31,8 @@ async function refreshSession(): Promise<boolean> {
 }
 
 function buildUrl(path: string, params?: Record<string, unknown>): string {
-  const url = new URL(path.startsWith("http") ? path : `${BASE}${path}`);
+  const raw = path.startsWith("http") ? path : `${BASE}${path}`;
+  const url = new URL(raw, typeof window !== "undefined" ? window.location.origin : undefined);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
