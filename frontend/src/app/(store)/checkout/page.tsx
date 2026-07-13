@@ -1,14 +1,15 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Wallet, Truck, CheckCircle2, User, Phone, MapPin, StickyNote } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
-import { ordersApi } from "@/lib/api/services";
+import { ordersApi, couponsApi } from "@/lib/api/services";
 
 const SHIPPING = 10;
+const COUPON_KEY = "alrajhi.coupon";
 const cities = ["طرابلس", "بنغازي", "مصراتة", "الزاوية", "زليتن", "صبراتة", "الخمس", "أخرى"];
 
 export default function CheckoutPage() {
@@ -17,8 +18,25 @@ export default function CheckoutPage() {
   const [placed, setPlaced] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState<string | null>(null);
+  const [discount, setDiscount] = useState(0);
   const [form, setForm] = useState({ name: "", phone: "", city: cities[0], address: "", notes: "" });
-  const total = subtotal + (cart.length ? SHIPPING : 0);
+
+  // Re-validate the coupon saved in the cart against the current subtotal (backend stays authoritative).
+  useEffect(() => {
+    if (!subtotal) return;
+    let code: string | null = null;
+    try {
+      const raw = localStorage.getItem(COUPON_KEY);
+      if (raw) code = (JSON.parse(raw) as { code?: string }).code ?? null;
+    } catch {}
+    if (!code) { setCouponCode(null); setDiscount(0); return; }
+    couponsApi.validate(code, subtotal)
+      .then((res) => { setCouponCode(res.code); setDiscount(res.discount); })
+      .catch(() => { setCouponCode(null); setDiscount(0); localStorage.removeItem(COUPON_KEY); });
+  }, [subtotal]);
+
+  const total = Math.max(0, subtotal - discount) + (cart.length ? SHIPPING : 0);
 
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
@@ -27,8 +45,10 @@ export default function CheckoutPage() {
     try {
       await ordersApi.create({
         customer: form.name, phone: form.phone, city: form.city, address: form.address, notes: form.notes || undefined,
+        couponCode: couponCode || undefined,
         items: cart.map((l) => ({ productId: l.product.id, quantity: l.qty })),
       });
+      localStorage.removeItem(COUPON_KEY);
       setPlaced(true);
       clearCart();
     } catch (err) {
@@ -121,6 +141,7 @@ export default function CheckoutPage() {
             </div>
             <dl className="mt-4 space-y-2.5 border-t border-line pt-4 text-sm">
               <div className="flex justify-between"><dt className="text-muted">المجموع الفرعي</dt><dd className="font-bold">{formatPrice(subtotal)}</dd></div>
+              {discount > 0 && <div className="flex justify-between"><dt className="text-muted">الخصم{couponCode ? ` (${couponCode})` : ""}</dt><dd className="font-bold text-success">- {formatPrice(discount)}</dd></div>}
               <div className="flex justify-between"><dt className="text-muted">التوصيل</dt><dd className="font-bold">{formatPrice(SHIPPING)}</dd></div>
               <div className="flex justify-between border-t border-line pt-3 text-base"><dt className="font-extrabold text-ink">الإجمالي</dt><dd className="font-extrabold text-primary">{formatPrice(total)}</dd></div>
             </dl>

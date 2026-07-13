@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Phone, Headphones, Search, Heart, ShoppingCart, Menu, X, Globe } from "lucide-react";
+import { Search, Heart, ShoppingCart, Menu, X } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { useLocale } from "@/context/LocaleContext";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ import Logo from "./Logo";
 
 export default function Header() {
   const { cartCount, wishlist } = useStore();
-  const { t, toggle, locale } = useLocale();
+  const { t } = useLocale();
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -32,26 +32,6 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50">
-      {/* top info bar */}
-      <div className="bg-ink text-white">
-        <div className="container-x flex h-9 items-center justify-between text-xs">
-          <div className="flex items-center gap-4">
-            <a href="tel:0921234567" className="flex items-center gap-1.5 hover:text-white/80">
-              <Phone width={13} height={13} /> 092 123 4567
-            </a>
-            <span className="hidden items-center gap-1.5 sm:flex">
-              <Headphones width={13} height={13} /> {t.topSupport}
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/contact" className="hover:text-white/80">{t.topContact}</Link>
-            <button onClick={toggle} className="flex items-center gap-1 font-bold hover:text-white/80">
-              <Globe width={13} height={13} /> {t.lang}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* main bar */}
       <div className="border-b border-line bg-white/95 backdrop-blur">
         <div className="container-x flex h-16 items-center gap-3 lg:gap-6">

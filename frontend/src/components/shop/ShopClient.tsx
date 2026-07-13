@@ -7,6 +7,19 @@ import ProductCard from "@/components/ProductCard";
 import RatingStars from "@/components/ui/RatingStars";
 import { cn, formatPrice } from "@/lib/utils";
 
+// Normalizes Arabic text so search ignores hamza forms, diacritics and tatweel.
+function normalizeAr(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .replace(/[\u0617-\u061A\u064B-\u0652\u0670\u0640]/g, "")
+    .replace(/[\u0623\u0625\u0622\u0671]/g, "\u0627")
+    .replace(/\u0649/g, "\u064A")
+    .replace(/\u0624/g, "\u0648")
+    .replace(/\u0626/g, "\u064A")
+    .replace(/\u0629/g, "\u0647")
+    .trim();
+}
+
 const PAGE_SIZE = 12;
 const sortOptions = [
   { v: "featured", l: "المميزة" },
@@ -45,7 +58,10 @@ export default function ShopClient() {
       if (p.price > effMax) return false;
       if (inStockOnly && !p.inStock) return false;
       if (minRating && p.rating < minRating) return false;
-      if (query && !(`${p.name} ${p.nameEn}`.toLowerCase().includes(query.toLowerCase()))) return false;
+      if (query) {
+        const hay = normalizeAr(`${p.name} ${p.nameEn} ${p.categoryName ?? ""} ${p.brandName ?? ""}`);
+        if (!hay.includes(normalizeAr(query))) return false;
+      }
       return true;
     });
     switch (sort) {

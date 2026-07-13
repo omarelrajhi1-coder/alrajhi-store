@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Percent } from "lucide-react";
 import OffersClient from "@/components/shop/OffersClient";
-import Newsletter from "@/components/Newsletter";
-
 export const metadata: Metadata = { title: "العروض" };
 
 export default function OffersPage() {
@@ -16,7 +14,6 @@ export default function OffersPage() {
         </div>
       </section>
       <OffersClient />
-      <Newsletter />
     </div>
   );
 }

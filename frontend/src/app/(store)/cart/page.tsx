@@ -1,13 +1,14 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Trash2, Minus, Plus, ShoppingBag, Tag, ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Trash2, Minus, Plus, ShoppingBag, Tag, ArrowLeft, X } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
 import { couponsApi } from "@/lib/api/services";
 
 const SHIPPING = 10;
+const COUPON_KEY = "alrajhi.coupon";
 
 export default function CartPage() {
   const { cart, setQty, removeFromCart, subtotal } = useStore();
@@ -15,6 +16,21 @@ export default function CartPage() {
   const [applied, setApplied] = useState(0);
   const [couponMsg, setCouponMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
+
+  // Restore a previously applied coupon (persisted so checkout can use it too).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(COUPON_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as { code: string; discount: number };
+        if (saved?.code) {
+          setCoupon(saved.code);
+          setApplied(saved.discount || 0);
+          setCouponMsg({ ok: true, text: `تم تطبيق الخصم: -${formatPrice(saved.discount || 0)}` });
+        }
+      }
+    } catch {}
+  }, []);
 
   async function applyCoupon() {
     if (!coupon.trim()) return;
@@ -24,12 +40,21 @@ export default function CartPage() {
       const res = await couponsApi.validate(coupon.trim(), subtotal);
       setApplied(res.discount);
       setCouponMsg({ ok: true, text: `تم تطبيق الخصم: -${formatPrice(res.discount)}` });
+      localStorage.setItem(COUPON_KEY, JSON.stringify({ code: coupon.trim().toUpperCase(), discount: res.discount }));
     } catch (e) {
       setApplied(0);
+      localStorage.removeItem(COUPON_KEY);
       setCouponMsg({ ok: false, text: e instanceof Error ? e.message : "كود غير صالح" });
     } finally {
       setCouponBusy(false);
     }
+  }
+
+  function removeCoupon() {
+    setCoupon("");
+    setApplied(0);
+    setCouponMsg(null);
+    localStorage.removeItem(COUPON_KEY);
   }
 
   const shipping = cart.length ? SHIPPING : 0;
@@ -85,7 +110,9 @@ export default function CartPage() {
               <span className="grid w-10 place-items-center text-muted"><Tag width={16} height={16} /></span>
               <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="كود الخصم"
                 className="h-10 flex-1 bg-transparent text-sm outline-none" />
-              <button onClick={applyCoupon} disabled={couponBusy} className="px-3 text-sm font-bold text-primary disabled:opacity-50">{couponBusy ? "…" : "تطبيق"}</button>
+              {applied > 0
+                ? <button onClick={removeCoupon} className="grid w-10 place-items-center text-muted hover:text-error" aria-label="إزالة الكوبون"><X width={16} height={16} /></button>
+                : <button onClick={applyCoupon} disabled={couponBusy} className="px-3 text-sm font-bold text-primary disabled:opacity-50">{couponBusy ? "…" : "تطبيق"}</button>}
             </div>
             {couponMsg && <p className={couponMsg.ok ? "mt-2 text-xs font-bold text-success" : "mt-2 text-xs font-bold text-error"}>{couponMsg.text}</p>}
             <dl className="mt-4 space-y-2.5 border-t border-line pt-4 text-sm">

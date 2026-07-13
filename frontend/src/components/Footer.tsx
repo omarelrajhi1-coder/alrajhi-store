@@ -5,7 +5,7 @@ import Logo from "./Logo";
 
 const cols = [
   { title: "روابط سريعة", links: [["الرئيسية","/"],["المنتجات","/shop"],["العروض","/offers"],["من نحن","/about"],["تواصل معنا","/contact"]] },
-  { title: "خدمة العملاء", links: [["حسابي","/account"],["طلباتي","/account"],["سلة التسوّق","/cart"],["سياسة الإرجاع","/about"],["الشحن والتوصيل","/about"]] },
+  { title: "خدمة العملاء", links: [["حسابي","/account"],["طلباتي","/account"],["سلة التسوّق","/cart"]] },
 ];
 
 export default function Footer() {
@@ -41,8 +41,8 @@ export default function Footer() {
         <div>
           <h4 className="mb-4 text-sm font-extrabold text-ink">تواصل معنا</h4>
           <ul className="space-y-3 text-sm text-muted">
-            <li className="flex items-center gap-2"><Phone width={15} height={15} className="text-primary" /> 092 123 4567</li>
-            <li className="flex items-center gap-2"><Mail width={15} height={15} className="text-primary" /> info@alrajhi.ly</li>
+            <li className="flex items-center gap-2"><Phone width={15} height={15} className="text-primary" /> <span dir="ltr">094 563 9026</span></li>
+            <li className="flex items-center gap-2"><Mail width={15} height={15} className="text-primary" /> omaralrajhi200@gmail.com</li>
             <li className="flex items-start gap-2"><MapPin width={15} height={15} className="mt-0.5 text-primary" /> طرابلس، ليبيا</li>
           </ul>
         </div>

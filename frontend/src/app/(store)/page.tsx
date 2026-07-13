@@ -5,7 +5,6 @@ import ProductGrid from "@/components/ProductGrid";
 import SectionHeader from "@/components/SectionHeader";
 import OfferBanner from "@/components/OfferBanner";
 import BrandStrip from "@/components/BrandStrip";
-import Newsletter from "@/components/Newsletter";
 import { categories } from "@/data/catalogue";
 import { getHomeData } from "@/lib/api/server";
 
@@ -50,7 +49,6 @@ export default async function HomePage() {
       </section>
 
       <BrandStrip />
-      <Newsletter />
     </>
   );
 }

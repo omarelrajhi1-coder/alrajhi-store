@@ -5,10 +5,10 @@ import { Phone, Mail, MapPin, Clock, Send, CheckCircle2 } from "lucide-react";
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const info = [
-    { icon: Phone, label: "الهاتف", value: "092 123 4567" },
-    { icon: Mail, label: "البريد", value: "info@alrajhi.ly" },
+    { icon: Phone, label: "الهاتف", value: "094 563 9026" },
+    { icon: Mail, label: "البريد", value: "omaralrajhi200@gmail.com" },
     { icon: MapPin, label: "العنوان", value: "طرابلس، ليبيا" },
-    { icon: Clock, label: "أوقات العمل", value: "السبت - الخميس، 9 صباحاً - 9 مساءً" },
+    { icon: Clock, label: "أوقات العمل", value: "السبت - الخميس، 9 صباحاً - 2 ظهراً" },
   ];
   return (
     <div className="container-x py-10">
@@ -23,7 +23,7 @@ export default function ContactPage() {
               <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary"><c.icon width={20} height={20} /></span>
               <div>
                 <p className="text-xs text-muted">{c.label}</p>
-                <p className="text-sm font-bold text-ink">{c.value}</p>
+                <p dir="auto" className="text-sm font-bold text-ink">{c.value}</p>
               </div>
             </div>
           ))}
