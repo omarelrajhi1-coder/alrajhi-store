@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ordersAdminApi } from "@/lib/api/services";
 import PageHeader from "@/components/admin/PageHeader";
@@ -21,6 +22,7 @@ export default function AdminOrders() {
   const qc = useQueryClient();
   const [status, setStatus] = useState("ALL");
   const [updating, setUpdating] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "orders", status],
     queryFn: () => ordersAdminApi.list({ status, limit: 50 }),
@@ -57,6 +59,7 @@ export default function AdminOrders() {
           <table className="w-full min-w-[780px] text-sm">
             <thead>
               <tr className="border-b border-line text-right text-xs text-muted">
+                <th className="px-4 py-3 font-bold"></th>
                 <th className="px-4 py-3 font-bold">رقم الطلب</th>
                 <th className="px-4 py-3 font-bold">العميل</th>
                 <th className="px-4 py-3 font-bold">الهاتف</th>
@@ -67,25 +70,52 @@ export default function AdminOrders() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((o) => (
-                <tr key={o.id} className={cn("border-b border-line/60 last:border-0 hover:bg-bg", updating === o.id && "opacity-50")}>
-                  <td className="px-4 py-3 font-bold text-ink">{o.number}</td>
-                  <td className="px-4 py-3">{o.customer}</td>
-                  <td className="px-4 py-3 text-muted">{o.phone}</td>
-                  <td className="px-4 py-3 text-muted">{o.city}</td>
-                  <td className="px-4 py-3 font-bold text-primary">{formatPrice(o.total)}</td>
-                  <td className="px-4 py-3 text-muted">{o.createdAt?.slice(0, 10)}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={o.status}
-                      disabled={updating === o.id}
-                      onChange={(e) => changeStatus(o.id, e.target.value)}
-                      className={cn("chip cursor-pointer border-0 outline-none", statusColor[o.status])}>
-                      {allStatuses.map((s) => <option key={s} value={s}>{statusLabel[s]}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((o) => {
+                const open = openId === o.id;
+                return (
+                  <>
+                    <tr key={o.id} className={cn("cursor-pointer border-b border-line/60 last:border-0 hover:bg-bg", updating === o.id && "opacity-50")}
+                      onClick={() => setOpenId(open ? null : o.id)}>
+                      <td className="px-4 py-3 text-muted">{open ? <ChevronUp width={16} height={16} /> : <ChevronDown width={16} height={16} />}</td>
+                      <td className="px-4 py-3 font-bold text-ink">{o.number}</td>
+                      <td className="px-4 py-3">{o.customer}</td>
+                      <td className="px-4 py-3 text-muted">{o.phone}</td>
+                      <td className="px-4 py-3 text-muted">{o.city}</td>
+                      <td className="px-4 py-3 font-bold text-primary">{formatPrice(o.total)}</td>
+                      <td className="px-4 py-3 text-muted">{o.createdAt?.slice(0, 10)}</td>
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <select
+                          value={o.status}
+                          disabled={updating === o.id}
+                          onChange={(e) => changeStatus(o.id, e.target.value)}
+                          className={cn("chip cursor-pointer border-0 outline-none", statusColor[o.status])}>
+                          {allStatuses.map((s) => <option key={s} value={s}>{statusLabel[s]}</option>)}
+                        </select>
+                      </td>
+                    </tr>
+                    {open && (
+                      <tr className="border-b border-line/60 bg-bg">
+                        <td colSpan={8} className="px-4 py-4">
+                          <div className="rounded-lg border border-line bg-white p-4">
+                            <p className="mb-3 text-xs font-bold text-muted">المنتجات المطلوبة في هذا الطلب:</p>
+                            <ul className="space-y-2">
+                              {o.items?.length ? o.items.map((it, i) => (
+                                <li key={i} className="flex items-center justify-between border-b border-line/50 pb-2 text-sm last:border-0 last:pb-0">
+                                  <span className="font-bold text-ink">{it.name}</span>
+                                  <span className="text-muted">الكمية: <span className="font-bold text-ink">{it.quantity}</span></span>
+                                </li>
+                              )) : <li className="text-sm text-muted">لا توجد تفاصيل منتجات لهذا الطلب</li>}
+                            </ul>
+                            <div className="mt-3 border-t border-line pt-3 text-xs text-muted">
+                              <span className="font-bold text-ink">العنوان: </span>{o.address}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
             </tbody>
           </table>
         )}

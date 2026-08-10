@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
 import { z } from "zod";
 
 /**
@@ -6,12 +7,15 @@ import { z } from "zod";
  * In production, missing critical secrets throw at boot (fail-fast).
  * In development, safe defaults keep the DX smooth.
  */
+const envPath = path.resolve(__dirname, "../.env");
+dotenv.config({ path: envPath });
+
 const isProd = process.env.NODE_ENV === "production";
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().default(4000),
-  DATABASE_URL: z.string().min(1).optional(),
+  DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(16).default("dev-access-secret-change-me-please"),
   JWT_REFRESH_SECRET: z.string().min(16).default("dev-refresh-secret-change-me-please"),
   ACCESS_TOKEN_TTL: z.string().default("15m"),
