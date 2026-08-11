@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Package, Tags, Bookmark, ShoppingBag, Users, Boxes,
-  Ticket, Star, Settings, ImageIcon, UserCog, BarChart3, Menu, X, Bell, Search, LogOut, Percent,
+  Ticket, Star, Settings, ImageIcon, UserCog, BarChart3, Menu, X, Bell, Search, LogOut, Percent, MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +21,7 @@ const nav = [
   { href: "/admin/inventory", label: "المخزون", icon: Boxes },
   { href: "/admin/coupons", label: "كوبونات الخصم", icon: Ticket },
   { href: "/admin/reviews", label: "التقييمات", icon: Star },
+  { href: "/admin/contact", label: "رسائل التواصل", icon: MessageSquare },
   { href: "/admin/banners", label: "أقسام الصفحة الرئيسية", icon: ImageIcon },
   { href: "/admin/employees", label: "الموظفون", icon: UserCog },
   { href: "/admin/analytics", label: "التحليلات", icon: BarChart3 },

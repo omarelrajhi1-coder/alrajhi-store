@@ -103,6 +103,18 @@ export const analyticsApi = {
   summary: () => api.get<AnalyticsSummary>("/analytics/summary").then((r) => r.data),
 };
 
+export const contactApi = {
+  send: (b: { name: string; phone: string; email?: string; message: string }) => api.post("/contact", b).then((r) => r.data),
+};
+
+export interface ContactMessage { id: string; name: string; phone: string; email: string | null; message: string; isRead: boolean; createdAt: string }
+export const contactAdminApi = {
+  list: (q: Record<string, unknown> = {}) => api.get<ContactMessage[]>("/contact", q).then((r) => ({ items: r.data, meta: r.meta })),
+  unreadCount: () => api.get<{ count: number }>("/contact/unread-count").then((r) => r.data),
+  markRead: (id: string) => api.patch(`/contact/${id}/read`).then((r) => r.data),
+  remove: (id: string) => api.del(`/contact/${id}`),
+};
+
 // ---- Admin-only read/write services ----
 export interface AdminUser { id: string; name: string; email: string; phone: string | null; role: string; isActive: boolean; createdAt: string; _count?: { orders: number } }
 export const usersApi = {

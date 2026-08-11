@@ -16,6 +16,7 @@ import cms from "./modules/cms/cms.routes";
 import notifications from "./modules/notifications/notifications.routes";
 import analytics from "./modules/analytics/analytics.routes";
 import uploads from "./modules/uploads/uploads.routes";
+import contact from "./modules/contact/contact.routes";
 
 export const apiRouter = Router();
 apiRouter.use("/auth", auth);
@@ -36,3 +37,4 @@ apiRouter.use("/cms", cms);
 apiRouter.use("/notifications", notifications);
 apiRouter.use("/analytics", analytics);
 apiRouter.use("/uploads", uploads);
+apiRouter.use("/contact", contact);

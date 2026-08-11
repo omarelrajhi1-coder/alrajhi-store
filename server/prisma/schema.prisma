@@ -418,6 +418,18 @@ model AnalyticsEvent {
   @@index([createdAt])
 }
 
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([isRead])
+  @@index([createdAt])
+}
+
 // Pre-aggregated daily metrics for fast dashboard charts.
 model DailyMetric {
   id        String   @id @default(cuid())
