@@ -143,7 +143,7 @@ export const reviewsAdminApi = {
   setStatus: (id: string, status: string) => api.patch(`/reviews/${id}/status`, { status }).then((r) => r.data),
 };
 
-export interface AdminOrder { id: string; number: string; customer: string; phone: string; city: string; address: string; total: number; status: string; createdAt: string; items: { name: string; quantity: number }[] }
+export interface AdminOrder { id: string; number: string; customer: string; phone: string; city: string; address: string; notes: string | null; total: number; status: string; createdAt: string; items: { name: string; quantity: number }[] }
 export const ordersAdminApi = {
   list: (q: Record<string, unknown> = {}) => api.get<AdminOrder[]>("/orders", q).then((r) => ({ items: r.data, meta: r.meta })),
   updateStatus: (id: string, status: string) => api.patch(`/orders/${id}/status`, { status }).then((r) => r.data),

@@ -139,6 +139,11 @@ export default function AdminOrders() {
                               <p><span className="font-bold text-ink">الهاتف: </span><span dir="ltr">{o.phone}</span></p>
                               <p><span className="font-bold text-ink">المدينة: </span>{o.city}</p>
                               <p><span className="font-bold text-ink">العنوان: </span>{o.address}</p>
+                              {o.notes && (
+                                <p className="rounded-lg bg-warning/10 px-2.5 py-2 text-warning">
+                                  <span className="font-bold">ملاحظات العميل: </span>{o.notes}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </td>
