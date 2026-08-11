@@ -4,10 +4,19 @@ import { useQuery } from "@tanstack/react-query";
 import { Wallet, ShoppingBag, Clock, Truck, CheckCircle2, Users, AlertTriangle } from "lucide-react";
 import StatCard from "@/components/admin/StatCard";
 import SalesChart from "@/components/admin/SalesChart";
-import StatusBadge from "@/components/admin/StatusBadge";
-import { stats as mockStats, orders, topProducts as mockTop } from "@/data/admin";
-import { dashboardApi } from "@/lib/api/services";
-import { formatPrice } from "@/lib/utils";
+import { stats as mockStats, topProducts as mockTop } from "@/data/admin";
+import { dashboardApi, ordersAdminApi, AdminOrder } from "@/lib/api/services";
+import { formatPrice, cn } from "@/lib/utils";
+
+const statusLabel: Record<string, string> = {
+  NEW: "جديد", PROCESSING: "قيد التجهيز", SHIPPING: "قيد التوصيل",
+  DELIVERED: "تم التسليم", CANCELLED: "ملغي", RETURNED: "مرتجع",
+};
+const statusColor: Record<string, string> = {
+  NEW: "bg-warning/15 text-warning", PROCESSING: "bg-blue-100 text-blue-600",
+  SHIPPING: "bg-primary/10 text-primary", DELIVERED: "bg-success/15 text-success",
+  CANCELLED: "bg-error/10 text-error", RETURNED: "bg-muted/15 text-muted",
+};
 
 interface TopProduct { id: string; name: string; price: number; image: string | null; sold: number }
 
@@ -15,12 +24,17 @@ export default function AdminDashboard() {
   const { data: live } = useQuery({ queryKey: ["admin", "overview"], queryFn: dashboardApi.overview as () => Promise<typeof mockStats>, retry: 0 });
   const { data: topLive } = useQuery({ queryKey: ["admin", "top"], queryFn: dashboardApi.topProducts as () => Promise<TopProduct[]>, retry: 0 });
   const { data: sales } = useQuery({ queryKey: ["admin", "sales"], queryFn: dashboardApi.salesByMonth, retry: 0 });
+  const { data: recentOrders } = useQuery({
+    queryKey: ["admin", "orders", "recent"],
+    queryFn: () => ordersAdminApi.list({ limit: 6 }),
+    retry: 0,
+  });
 
   const stats = { ...mockStats, ...(live ?? {}) };
   const top: TopProduct[] = (topLive && topLive.length)
     ? topLive
     : mockTop.map((p) => ({ id: p.id, name: p.name, price: p.price, image: p.images[0], sold: p.sold }));
-  const recent = orders.slice(0, 6);
+  const recent: AdminOrder[] = recentOrders?.items ?? [];
 
   return (
     <div className="space-y-6">
@@ -87,7 +101,10 @@ function MiniStat({ icon: Icon, label, value, tone }: { icon: React.ComponentTyp
   );
 }
 
-function OrdersTable({ rows }: { rows: typeof orders }) {
+function OrdersTable({ rows }: { rows: AdminOrder[] }) {
+  if (rows.length === 0) {
+    return <p className="py-10 text-center text-sm text-muted">لا توجد طلبات بعد</p>;
+  }
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] text-sm">
@@ -104,12 +121,12 @@ function OrdersTable({ rows }: { rows: typeof orders }) {
         <tbody>
           {rows.map((o) => (
             <tr key={o.id} className="border-b border-line/60 last:border-0 hover:bg-bg">
-              <td className="px-5 py-3 font-bold text-ink">{o.id}</td>
+              <td className="px-5 py-3 font-bold text-ink">{o.number}</td>
               <td className="px-5 py-3">{o.customer}</td>
               <td className="px-5 py-3 text-muted">{o.address}</td>
               <td className="px-5 py-3 font-bold text-primary">{formatPrice(o.total)}</td>
-              <td className="px-5 py-3"><StatusBadge status={o.status} /></td>
-              <td className="px-5 py-3 text-muted">{o.date}</td>
+              <td className="px-5 py-3"><span className={cn("chip", statusColor[o.status])}>{statusLabel[o.status] ?? o.status}</span></td>
+              <td className="px-5 py-3 text-muted">{o.createdAt?.slice(0, 10)}</td>
             </tr>
           ))}
         </tbody>
