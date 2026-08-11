@@ -1,13 +1,14 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, ShoppingCart, Heart, Truck, ShieldCheck, RotateCcw, Check, ChevronLeft } from "lucide-react";
 import type { Product } from "@/types";
 import { useStore } from "@/context/StoreContext";
 import { getBrand, getCategory } from "@/data/catalogue";
 import { cn, discountPercent, safeImg } from "@/lib/utils";
+import { analyticsApi } from "@/lib/api/services";
 import RatingStars from "@/components/ui/RatingStars";
 import Price from "@/components/ui/Price";
 import ProductCard from "@/components/ProductCard";
@@ -32,6 +33,11 @@ export default function ProductDetail({ product, related }: { product: Product; 
   const [tab, setTab] = useState("desc");
   const [added, setAdded] = useState(false);
   const disc = discountPercent(product.price, product.oldPrice);
+
+  useEffect(() => {
+    analyticsApi.track({ type: "page_view", path: `/product/${product.slug}` }).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.slug]);
   // Prefer API-provided names; fall back to local lookups for mock data.
   const brandName = product.brandName ?? getBrand(product.brandId)?.name;
   const categoryName = product.categoryName ?? getCategory(product.categorySlug)?.name;

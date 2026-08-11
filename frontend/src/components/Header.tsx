@@ -6,6 +6,7 @@ import { Search, Heart, ShoppingCart, Menu, X } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { useLocale } from "@/context/LocaleContext";
 import { cn } from "@/lib/utils";
+import { analyticsApi } from "@/lib/api/services";
 import Logo from "./Logo";
 
 export default function Header() {
@@ -26,6 +27,7 @@ export default function Header() {
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
+    if (q.trim()) analyticsApi.track({ type: "search", path: `/shop?q=${encodeURIComponent(q)}` }).catch(() => undefined);
     router.push(`/shop?q=${encodeURIComponent(q)}`);
     setOpen(false);
   }

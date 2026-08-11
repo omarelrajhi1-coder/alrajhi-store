@@ -5,13 +5,18 @@ import { useEffect, useState } from "react";
 import { Trash2, Minus, Plus, ShoppingBag, Tag, ArrowLeft, X } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
-import { couponsApi } from "@/lib/api/services";
+import { couponsApi, cmsApi } from "@/lib/api/services";
+import { useQuery } from "@tanstack/react-query";
 
-const SHIPPING = 10;
+const DEFAULT_SHIPPING = 10;
 const COUPON_KEY = "alrajhi.coupon";
 
 export default function CartPage() {
   const { cart, setQty, removeFromCart, subtotal } = useStore();
+  const { data: settings } = useQuery({ queryKey: ["cms", "settings"], queryFn: cmsApi.settings, retry: 0 });
+  const shippingCfg = (settings?.shipping as { flatRate?: number; freeOver?: number } | undefined) ?? {};
+  const flatRate = typeof shippingCfg.flatRate === "number" ? shippingCfg.flatRate : DEFAULT_SHIPPING;
+  const freeOver = typeof shippingCfg.freeOver === "number" ? shippingCfg.freeOver : 0;
   const [coupon, setCoupon] = useState("");
   const [applied, setApplied] = useState(0);
   const [couponMsg, setCouponMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -57,7 +62,8 @@ export default function CartPage() {
     localStorage.removeItem(COUPON_KEY);
   }
 
-  const shipping = cart.length ? SHIPPING : 0;
+  const netSubtotal = Math.max(0, subtotal - applied);
+  const shipping = !cart.length ? 0 : (freeOver > 0 && netSubtotal >= freeOver ? 0 : flatRate);
   const total = Math.max(0, subtotal - applied) + shipping;
 
   if (cart.length === 0) {

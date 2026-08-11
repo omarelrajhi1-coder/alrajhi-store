@@ -2,12 +2,22 @@ import { Prisma, OrderStatus } from "@prisma/client";
 import { prisma } from "../../prisma";
 import { AppError } from "../../utils/AppError";
 
-const SHIPPING = 10;
+const DEFAULT_SHIPPING = 10;
 
 export interface CreateOrderInput {
   customer: string; phone: string; city: string; address: string; notes?: string;
   couponCode?: string;
   items: { productId: string; quantity: number }[];
+}
+
+// Reads the admin-configurable shipping settings (falls back to sane defaults if unset).
+async function getShippingConfig(tx: Prisma.TransactionClient) {
+  const row = await tx.setting.findUnique({ where: { key: "shipping" } });
+  const val = (row?.value ?? {}) as { flatRate?: number; freeOver?: number };
+  return {
+    flatRate: typeof val.flatRate === "number" && val.flatRate >= 0 ? val.flatRate : DEFAULT_SHIPPING,
+    freeOver: typeof val.freeOver === "number" && val.freeOver > 0 ? val.freeOver : 0,
+  };
 }
 
 export const ordersService = {
@@ -38,13 +48,15 @@ export const ordersService = {
         }
       }
 
-      const total = subtotal - discount + SHIPPING;
+      const { flatRate, freeOver } = await getShippingConfig(tx);
+      const shipping = freeOver > 0 && subtotal - discount >= freeOver ? 0 : flatRate;
+      const total = subtotal - discount + shipping;
       const order = await tx.order.create({
         data: {
           number: `#${Date.now().toString().slice(-7)}`,
           userId, customer: input.customer, phone: input.phone, city: input.city,
           address: input.address, notes: input.notes, couponCode,
-          subtotal, shipping: SHIPPING, discount, total,
+          subtotal, shipping, discount, total,
           items: { create: orderItems },
         },
         include: { items: true },

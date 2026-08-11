@@ -6,14 +6,19 @@ import { useRouter } from "next/navigation";
 import { Wallet, Truck, CheckCircle2, User, Phone, MapPin, StickyNote } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
-import { ordersApi, couponsApi } from "@/lib/api/services";
+import { ordersApi, couponsApi, analyticsApi, cmsApi } from "@/lib/api/services";
+import { useQuery } from "@tanstack/react-query";
 
-const SHIPPING = 10;
+const DEFAULT_SHIPPING = 10;
 const COUPON_KEY = "alrajhi.coupon";
 const cities = ["طرابلس", "بنغازي", "مصراتة", "الزاوية", "زليتن", "صبراتة", "الخمس", "أخرى"];
 
 export default function CheckoutPage() {
   const { cart, subtotal, clearCart } = useStore();
+  const { data: settings } = useQuery({ queryKey: ["cms", "settings"], queryFn: cmsApi.settings, retry: 0 });
+  const shippingCfg = (settings?.shipping as { flatRate?: number; freeOver?: number } | undefined) ?? {};
+  const flatRate = typeof shippingCfg.flatRate === "number" ? shippingCfg.flatRate : DEFAULT_SHIPPING;
+  const freeOver = typeof shippingCfg.freeOver === "number" ? shippingCfg.freeOver : 0;
   const router = useRouter();
   const [placed, setPlaced] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,7 +41,9 @@ export default function CheckoutPage() {
       .catch(() => { setCouponCode(null); setDiscount(0); localStorage.removeItem(COUPON_KEY); });
   }, [subtotal]);
 
-  const total = Math.max(0, subtotal - discount) + (cart.length ? SHIPPING : 0);
+  const netSubtotal = Math.max(0, subtotal - discount);
+  const shipping = !cart.length ? 0 : (freeOver > 0 && netSubtotal >= freeOver ? 0 : flatRate);
+  const total = netSubtotal + shipping;
 
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
@@ -49,6 +56,7 @@ export default function CheckoutPage() {
         items: cart.map((l) => ({ productId: l.product.id, quantity: l.qty })),
       });
       localStorage.removeItem(COUPON_KEY);
+      analyticsApi.track({ type: "purchase", value: total }).catch(() => undefined);
       setPlaced(true);
       clearCart();
     } catch (err) {
@@ -142,7 +150,7 @@ export default function CheckoutPage() {
             <dl className="mt-4 space-y-2.5 border-t border-line pt-4 text-sm">
               <div className="flex justify-between"><dt className="text-muted">المجموع الفرعي</dt><dd className="font-bold">{formatPrice(subtotal)}</dd></div>
               {discount > 0 && <div className="flex justify-between"><dt className="text-muted">الخصم{couponCode ? ` (${couponCode})` : ""}</dt><dd className="font-bold text-success">- {formatPrice(discount)}</dd></div>}
-              <div className="flex justify-between"><dt className="text-muted">التوصيل</dt><dd className="font-bold">{formatPrice(SHIPPING)}</dd></div>
+              <div className="flex justify-between"><dt className="text-muted">التوصيل</dt><dd className="font-bold">{shipping === 0 ? "مجاني" : formatPrice(shipping)}</dd></div>
               <div className="flex justify-between border-t border-line pt-3 text-base"><dt className="font-extrabold text-ink">الإجمالي</dt><dd className="font-extrabold text-primary">{formatPrice(total)}</dd></div>
             </dl>
             <button type="submit" disabled={busy} className="btn-primary mt-5 w-full py-3"><Truck width={18} height={18} /> {busy ? "جارٍ تأكيد الطلب…" : "تأكيد الطلب"}</button>

@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef, ReactNode } from "react";
 import type { Product, CartLine } from "@/types";
 import { useAuth } from "@/context/AuthContext";
-import { cartServerApi, wishlistServerApi } from "@/lib/api/services";
+import { cartServerApi, wishlistServerApi, analyticsApi } from "@/lib/api/services";
 
 interface StoreState {
   cart: CartLine[];
@@ -76,6 +76,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return [...prev, { product: p, qty }];
     });
     if (userRef.current) cartServerApi.add(p.id, qty).catch(() => undefined);
+    analyticsApi.track({ type: "add_to_cart", path: `/product/${p.slug}`, value: p.price * qty }).catch(() => undefined);
   }, []);
 
   const removeFromCart = useCallback((id: string) => {
