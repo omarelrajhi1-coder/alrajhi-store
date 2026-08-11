@@ -26,12 +26,16 @@ export const employeesService = {
     return prisma.employee.create({ data: { userId: user.id, title: data.title, roleId: data.roleId }, include: { user: true, role: true } });
   },
   async setActive(id: string, isActive: boolean) {
-    const emp = await prisma.employee.update({ where: { id }, data: { isActive }, include: { user: true } });
-    await prisma.user.update({ where: { id: emp.userId }, data: { isActive } });
-    return emp;
+    return prisma.$transaction(async (tx) => {
+      const emp = await tx.employee.update({ where: { id }, data: { isActive }, include: { user: true } });
+      await tx.user.update({ where: { id: emp.userId }, data: { isActive } });
+      return emp;
+    });
   },
   async remove(id: string) {
-    const emp = await prisma.employee.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
-    await prisma.user.update({ where: { id: emp.userId }, data: { isActive: false } });
+    await prisma.$transaction(async (tx) => {
+      const emp = await tx.employee.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
+      await tx.user.update({ where: { id: emp.userId }, data: { isActive: false } });
+    });
   },
 };

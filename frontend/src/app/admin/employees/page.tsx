@@ -12,7 +12,11 @@ export default function AdminEmployees() {
   const { data: employees = [], isLoading } = useQuery({ queryKey: ["admin", "employees"], queryFn: employeesApi.list });
   const { data: roles = [] } = useQuery({ queryKey: ["admin", "roles"], queryFn: employeesApi.roles });
   const [open, setOpen] = useState(false);
-  const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "employees"] });
+  // Employees are also Users (role STAFF), so keep the customers list in sync too.
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "employees"] });
+    qc.invalidateQueries({ queryKey: ["admin", "customers"] });
+  };
 
   async function toggle(id: string, active: boolean) {
     try { await employeesApi.setActive(id, active); refresh(); } catch (e) { window.alert("فشل: " + (e instanceof Error ? e.message : "")); }
