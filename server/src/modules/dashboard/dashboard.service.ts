@@ -2,16 +2,18 @@ import { prisma } from "../../prisma";
 
 export const dashboardService = {
   async overview() {
-    const [totalOrders, newOrders, shipping, delivered, customers, products, revenueAgg, lowStock] = await Promise.all([
+    const [totalOrders, newOrders, shipping, delivered, distinctBuyers, products, revenueAgg, lowStock] = await Promise.all([
       prisma.order.count(),
       prisma.order.count({ where: { status: "NEW" } }),
       prisma.order.count({ where: { status: "SHIPPING" } }),
       prisma.order.count({ where: { status: "DELIVERED" } }),
-      prisma.user.count({ where: { role: "CUSTOMER", deletedAt: null } }),
+      // every unique buyer who ever placed an order, whether they registered an account or checked out as a guest
+      prisma.order.findMany({ distinct: ["phone"], select: { phone: true } }),
       prisma.product.count({ where: { deletedAt: null } }),
       prisma.order.aggregate({ _sum: { total: true }, where: { status: "DELIVERED" } }),
       prisma.inventory.count({ where: { quantity: { lte: prisma.inventory.fields.lowStockAt } } }),
     ]);
+    const customers = distinctBuyers.length;
     return { revenue: revenueAgg._sum.total ?? 0, totalOrders, newOrders, shipping, delivered, customers, products, lowStock };
   },
 
