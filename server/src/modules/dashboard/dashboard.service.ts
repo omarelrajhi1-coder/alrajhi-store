@@ -9,7 +9,7 @@ export const dashboardService = {
       prisma.order.count({ where: { status: "DELIVERED" } }),
       prisma.user.count({ where: { role: "CUSTOMER", deletedAt: null } }),
       prisma.product.count({ where: { deletedAt: null } }),
-      prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { status: "DELIVERED" } }),
       prisma.inventory.count({ where: { quantity: { lte: prisma.inventory.fields.lowStockAt } } }),
     ]);
     return { revenue: revenueAgg._sum.total ?? 0, totalOrders, newOrders, shipping, delivered, customers, products, lowStock };
@@ -29,7 +29,7 @@ export const dashboardService = {
   // last 6 months revenue
   salesByMonth: async () => {
     const since = new Date(); since.setMonth(since.getMonth() - 5); since.setDate(1);
-    const orders = await prisma.order.findMany({ where: { createdAt: { gte: since }, status: { not: "CANCELLED" } }, select: { total: true, createdAt: true } });
+    const orders = await prisma.order.findMany({ where: { createdAt: { gte: since }, status: "DELIVERED" }, select: { total: true, createdAt: true } });
     const months: { m: string; v: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(); d.setMonth(d.getMonth() - i);
