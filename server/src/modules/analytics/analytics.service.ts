@@ -8,7 +8,7 @@ export const analyticsService = {
     const since = new Date(); since.setDate(since.getDate() - 30);
     const [byType, totalRevenue, orders] = await Promise.all([
       prisma.analyticsEvent.groupBy({ by: ["type"], _count: true, where: { createdAt: { gte: since } } }),
-      prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" }, createdAt: { gte: since } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { status: "DELIVERED", createdAt: { gte: since } } }),
       prisma.order.count({ where: { createdAt: { gte: since } } }),
     ]);
     return { last30Days: { events: byType, revenue: totalRevenue._sum.total ?? 0, orders } };
