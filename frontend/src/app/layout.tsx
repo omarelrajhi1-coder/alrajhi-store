@@ -6,7 +6,7 @@ import Providers from "./providers";
 const cairo = Cairo({ subsets: ["arabic", "latin"], variable: "--font-cairo", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://alrajhi.example"),
+  metadataBase: new URL("https://alrajhi-store.vercel.app"),
   title: { default: "الراجحي للمواد المنزلية | جودة عالية وأسعار مناسبة", template: "%s | الراجحي" },
   description: "متجر الراجحي للمواد المنزلية والكهربائية في ليبيا — أطقم صحون، أدوات مائدة، مفارش، وإكسسوارات المطبخ بجودة عالية وأسعار مناسبة. الدفع عند الاستلام وتوصيل سريع.",
   keywords: ["الراجحي", "مواد منزلية", "أدوات مطبخ", "أطقم صحون", "ليبيا", "طرابلس"],
